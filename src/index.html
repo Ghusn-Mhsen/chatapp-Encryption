@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>SocketsChat</title>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+    <ul id="message_list"></ul>
+    <form id="message_area" action="">
+        <input id="text_area" autocomplete="off" />
+        <button>Send</button>
+    </form>
+
+    <script>
+        
+        function makeid() {
+    var result           = '';
+    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < 32; i++ ) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+          
+const socket = io();
+
+
+        const username = window.prompt("Enter the username");
+        const UserController = require('./controllers/UserController');
+       
+        socket.emit('new user', {
+            username: "test",
+            phone: 123456789,
+            id: username,
+
+        });
+
+        const messageForm = document.getElementById('message_area');
+        const textInput = document.getElementById('text_area');
+
+        messageForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+           
+            await UserController.login({"phone":"1234567","password":"123456"});
+            // body
+        
+            if (textInput.value) {
+
+                var temp = {
+                    from: username,
+                    to: "63ab7568dd3f9b60984778be",
+                    message: textInput.value,
+                    mac: "b9df6380226db09e0964b124fb218771948b4be6"
+                }
+
+                socket.emit('msg', temp);
+                textInput.value = '';
+            }
+        });
+
+        socket.on('user-in', (data)=>{
+           const publicKey=data.PublicKey;
+            const sessionKey=makeid();
+
+            socket.emit('newSessionKey',{
+                SessionKey:sessionKey
+            })
+        })
+        socket.on('message', (data) => {
+
+              
+
+            const messageList = document.getElementById('message_list');
+            const chatItem = document.createElement('li');
+
+            chatItem.textContent = data.message + " " + data.from.username;
+            messageList.appendChild(chatItem);
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+    </script>
+
+</body>
+
+</html>
